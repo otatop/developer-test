@@ -39,11 +39,21 @@ def api_wrapper(func):
             return {
                 "statusCode": 400,
                 "body": str(exc),  # TODO: don't return the direct exception. That's not secure.
+                "headers": {
+                    "Access-Control-Allow-Headers" : "Content-Type",
+                    "Access-Control-Allow-Origin": "http://gravie-developer-test.s3-website-us-east-1.amazonaws.com",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT"
+                },
             }
         except Exception as exc:
             logging.exception("failed to list games")
             return {
                 "statusCode": 500,
                 "body": str(exc),  # TODO: don't return the direct exception. That's not secure.
+                "headers": {
+                    "Access-Control-Allow-Headers" : "Content-Type",
+                    "Access-Control-Allow-Origin": "http://gravie-developer-test.s3-website-us-east-1.amazonaws.com",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT"
+                },
             }
     return wrapper
