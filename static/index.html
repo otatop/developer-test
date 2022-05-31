@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <!--  A cheap quick HTML UI. Ideally this would be done in something more sophisticated like React however my JS is admittedly a bit rusty. Of course some css styling would probably also be well advised. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+    baseUrl = "https://2jwjqrjigb.execute-api.us-east-1.amazonaws.com/Prod"
+
+    function searchGames() {
+    {
+        searchText = $("#searchText").val();
+
+        $.get(baseUrl + "/games?name=" + searchText, function(data, status){
+            gameTableHtml = "<table><tr><td></td><td>Title</td><td>Available</td><td></td></tr>";
+
+            data.forEach(element => {
+                gameTableHtml += "<tr>"
+                gameTableHtml += "<td><img src='" + element.icon + "'/></td>"
+                gameTableHtml += "<td>" + element.name + "</td>"
+                gameTableHtml += "<td><input type='button' value='checkout' onclick='checkout(\"" + element.gameHash + "\")'/></td>"
+                if( element.hasOwnProperty('checkoutCount') ) {
+                    gameTableHtml += "<td>No</td>"
+                }
+                else {
+                    gameTableHtml += "<td>Yes</td>"
+                }
+                gameTableHtml += "</tr>"
+                });
+            gameTableHtml += "</table>";
+
+            $("#div1").html(gameTableHtml);
+          });
+      }
+    }
+
+    $(document).ready(function(){
+      $("#searchButton").click(searchGames);
+
+    });
+
+    function checkout(id) {
+        console.log("checkout " + id);
+        $.ajax({
+            url: baseUrl + "/games/" + id,
+            type: 'PUT',
+            success: function(result) {
+                searchGames();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                if (xhr.status == 400) {
+                    alert("Game already checked out");
+                }
+                else {
+                    alert("Server Error")
+                }
+            }
+        });
+    }
+    </script>
+</head>
+<body>
+
+Game title <input type="text" id="searchText"/>
+<input type="button" id="searchButton" value="search"/>
+<div id="div1"></div>
+
+
+Data provided by <a href="https://www.giantbomb.com"><img src="https://upload.wikimedia.org/wikipedia/en/4/4b/Giant_Bomb_logo.png"/></a>
+
+</body>
+</html>

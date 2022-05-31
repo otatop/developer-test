@@ -1,0 +1,3 @@
+-r lambdas/games/requirements.txt
+-r test/requirements.txt
+pylint

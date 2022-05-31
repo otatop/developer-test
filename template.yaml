@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  gravie-developer-test
+
+  Demonstration of Keith's awesome coding abilities
+
+Globals:
+  Function:
+    Timeout: 30
+#    Tracing: Active  # disabled to reduce cost while testing
+
+# TODO: Define OpenAPI yaml file and configure with API Gateway
+Resources:
+
+  # TODO: Define Authorizer lambda with API Gateway
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'POST, GET, PUT, OPTIONS'"
+        AllowHeaders: "'X-Forwarded-For'"
+        AllowOrigin: "'*'"
+
+  #TODO: configure provisioned concurrency and optionally a scheduled lambda to adjust it for optimal performance
+  ListGamesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/games
+      Handler: games_handler.get_games_handler
+      Runtime: python3.9
+      Policies: AmazonDynamoDBReadOnlyAccess
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /games
+            Method: get
+            RestApiId:
+              Ref: ApiGatewayApi
+
+  PutGamesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/games
+      Handler: games_handler.checkout_game_handler
+      Runtime: python3.9
+      Policies: AmazonDynamoDBFullAccess  # TODO: slim down access to something reasonable
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /games/{game_hash}
+            Method: put
+            RestApiId:
+              Ref: ApiGatewayApi
+
+  # TODO: add cron config, store last retrieved in S3 so we can incrementally load updates. Keep url for developers use but restrict access.
+  LoadGamesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambdas/games
+      Handler: games_handler.load_games_handler
+      Runtime: python3.9
+      Policies: AmazonDynamoDBFullAccess  # TODO: Slim down access to something reasonable
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /games/loadJob
+            Method: get
+            RestApiId:
+              Ref: ApiGatewayApi
+
+  DynamoDBGamesTable:
+    Type: AWS::DynamoDB::Table
+    Description: Games table
+    Properties:
+      TableName: !Sub games-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: gameHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: gameHash
+          KeyType: HASH
+
+Outputs:
+  ListGamesApi:
+    Description: "API Gateway endpoint URL for Prod stage for List Games function"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/games/"
+  ListGamesFunction:
+    Description: "Api Games Lambda Function ARN"
+    Value: !GetAtt ListGamesFunction.Arn
+  ListGamesFunctionIamRole:
+    Description: "Implicit IAM Role created for Api Games Function function"
+    Value: !GetAtt ListGamesFunctionRole.Arn
