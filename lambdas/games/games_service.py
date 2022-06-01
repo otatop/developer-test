@@ -33,6 +33,8 @@ def search_games(name=None):
     for item in data:
         item.pop('raw', None)
 
+    # TODO: If items are empty, try a real time load from game bomb but search based on the input title. If we recieve a rate limit error, then just return empty.
+
     return data
 
 
