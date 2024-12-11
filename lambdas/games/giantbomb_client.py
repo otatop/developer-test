@@ -5,9 +5,9 @@ API_KEY = "d8fb97bdc1e0857eea97ff0b1401346fa9812fcf"
 USER_AGENT_HEADERS = {'User-agent': 'keith-test-app'}
 
 
-def get_games():
+def get_games(offset):
     # TODO: that passing an API key on a url is not secure. Talk to vendor about switching that to a header.
-    game_request = requests.get(f'https://www.giantbomb.com/api/games/?format=json&api_key={API_KEY}',
+    game_request = requests.get(f'https://www.giantbomb.com/api/games/?format=json&api_key={API_KEY}&offset={offset}',
                                 headers=USER_AGENT_HEADERS)
     status_code = game_request.status_code
     if status_code == 200:

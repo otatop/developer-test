@@ -39,13 +39,20 @@ def search_games(name=None):
 
 
 def load_games():
+    games_count = 0
+    number_of_total_results = 1
 
-    games_json = giantbomb_client.get_games()
-    for game in games_json["results"]:
-        converted_game = convert_game(game)
-        games_table.put_item(
-            Item=converted_game
-        )
+    while games_count < number_of_total_results and games_count < 300:  # limit total games since this is a demo project
+        games_response = giantbomb_client.get_games(games_count)
+        number_of_total_results = games_response['number_of_total_results']
+        games = games_response['results']
+        games_count += len(games)
+
+        for game in games:
+            converted_game = convert_game(game)
+            games_table.put_item(
+                Item=converted_game
+            )
 
 
 def convert_game(game):
